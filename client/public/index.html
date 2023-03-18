@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Move Circle with Arrow Keys</title>
+    <title>Move Circle with Arrow Keys and Send Coordinates to Server</title>
     <style>
       canvas {
         border: 1px solid black;
@@ -10,6 +10,7 @@
   </head>
   <body>
     <canvas id="myCanvas" width="500" height="500"></canvas>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <script>
       const canvas = document.getElementById("myCanvas");
       const ctx = canvas.getContext("2d");
@@ -26,7 +27,9 @@
       ctx.fillStyle = "red";
       ctx.fill();
 
-      // Move circle with arrow keys
+      // Move circle with arrow keys and send coordinates to server
+      const socket = io.connect('http://localhost:3000');
+
       document.addEventListener("keydown", (event) => {
         switch (event.key) {
           case "ArrowLeft":
@@ -42,6 +45,8 @@
             y += speed;
             break;
         }
+
+        socket.emit("position", { x, y });
       });
 
       // Redraw circle at new position
@@ -62,7 +67,7 @@
         window.requestAnimationFrame(drawCircle);
       }
 
-      // Use requestAnimationFrame to redraw circle every frame
+      // Use requestAnimationFrame to redraw circle every frame and listen for updates from server
       let left = 0;
       let right = 0;
       let up = 0;
@@ -87,6 +92,11 @@
 
       document.addEventListener("keydown", (event) => updateDirection(event, 1));
       document.addEventListener("keyup", (event) => updateDirection(event, 0));
+
+      socket.on("circleUpdate", ({ x: newX, y: newY }) => {
+        x = newX;
+        y = newY;
+      });
 
       window.requestAnimationFrame(drawCircle);
     </script>
